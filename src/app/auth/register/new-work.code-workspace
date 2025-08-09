@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "../../../../../build_backend/build-connect-backend"
+		},
+		{
+			"path": "../../../.."
+		},
+		{
+			"path": "../../../../../build-frontend/build-connect"
+		}
+	]
+}
