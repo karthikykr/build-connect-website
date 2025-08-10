@@ -1,7 +1,7 @@
-// Application Constants
+// Application Constants - Fully hardcoded, no environment variables
 
 // API Configuration
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+export const API_BASE_URL = 'http://localhost:8080';
 export const API_TIMEOUT = 30000; // 30 seconds
 
 // Application Routes

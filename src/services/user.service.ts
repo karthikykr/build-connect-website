@@ -33,7 +33,7 @@ class UserService {
    */
   async getProfile(accessToken: string, sessionId: string): Promise<ApiResponse<UserProfile>> {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user-service/api/v1/user/profile`, {
+      const response = await fetch('http://localhost:8080/user-service/api/v1/user/profile', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -94,7 +94,7 @@ class UserService {
    */
   async getUserFromRoot(accessToken: string, sessionId: string): Promise<ApiResponse<UserProfile>> {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user-service/api/v1/`, {
+      const response = await fetch('http://localhost:8080/user-service/api/v1/', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${accessToken}`,

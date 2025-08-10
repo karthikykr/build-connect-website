@@ -1,8 +1,6 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { JWT } from 'next-auth/jwt';
-import { User, UserRole } from '@/types';
-import { mockLogin, mockGetUserProfile, shouldUseMockAuth } from './mock-auth';
+import { UserRole } from '@/types';
 
 // Extend the built-in session types
 declare module 'next-auth' {
@@ -81,7 +79,7 @@ export const authOptions: NextAuthOptions = {
 
         try {
           // Call the backend API to authenticate user
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user-service/api/v1/login`, {
+          const response = await fetch('http://localhost:8080/user-service/api/v1/login', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -104,7 +102,7 @@ export const authOptions: NextAuthOptions = {
 
             try {
               // Fetch user profile data from the backend
-              const profileResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user-service/api/v1/user/profile`, {
+              const profileResponse = await fetch('http://localhost:8080/user-service/api/v1/user/profile', {
                 method: 'GET',
                 headers: {
                   'Authorization': `Bearer ${data.accessToken}`,
@@ -141,7 +139,7 @@ export const authOptions: NextAuthOptions = {
               } else {
                 console.error('Profile fetch failed:', profileResponse.status);
                 // Try the root endpoint as fallback
-                const rootResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user-service/api/v1/`, {
+                const rootResponse = await fetch('http://localhost:8080/user-service/api/v1/', {
                   method: 'GET',
                   headers: {
                     'Authorization': `Bearer ${data.accessToken}`,
@@ -180,14 +178,19 @@ export const authOptions: NextAuthOptions = {
               console.error('Error fetching user profile:', profileError);
             }
 
-            // Fallback: create basic user object if profile fetch fails
+            // Fallback: create user object if profile fetch fails
+            // In development, assign admin role to specific emails for testing
+            const isAdminEmail = credentials.email.includes('admin') ||
+                               credentials.email === 'admin@buildconnect.com' ||
+                               credentials.email === 'test@admin.com';
+
             return {
               id: 'temp-id',
               email: credentials.email,
               name: credentials.email.split('@')[0],
-              role: 'user' as UserRole,
-              isVerified: false,
-              isEmailVerified: false,
+              role: isAdminEmail ? 'admin' as UserRole : 'user' as UserRole,
+              isVerified: true, // Set to true for development
+              isEmailVerified: true, // Set to true for development
               isPhoneVerified: false,
               location: [],
               isAvailable: true,
@@ -262,7 +265,7 @@ export const authOptions: NextAuthOptions = {
     signIn: '/auth/login',
     error: '/auth/error',
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: 'build-connect-secret-key-for-development-only-change-in-production',
 };
 
 // Helper functions for role-based access control

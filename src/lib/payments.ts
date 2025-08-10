@@ -57,24 +57,24 @@ export interface Transaction {
   metadata?: Record<string, any>;
 }
 
-// Payment gateway configurations
+// Payment gateway configurations - Disabled for development
 export const PAYMENT_GATEWAYS = {
   RAZORPAY: {
     name: 'Razorpay',
-    keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-    keySecret: process.env.RAZORPAY_KEY_SECRET,
-    webhookSecret: process.env.RAZORPAY_WEBHOOK_SECRET,
+    keyId: '',
+    keySecret: '',
+    webhookSecret: '',
   },
   STRIPE: {
     name: 'Stripe',
-    publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
-    secretKey: process.env.STRIPE_SECRET_KEY,
-    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+    publishableKey: '',
+    secretKey: '',
+    webhookSecret: '',
   },
   PAYU: {
     name: 'PayU',
-    merchantKey: process.env.PAYU_MERCHANT_KEY,
-    merchantSalt: process.env.PAYU_MERCHANT_SALT,
+    merchantKey: '',
+    merchantSalt: '',
   },
 };
 

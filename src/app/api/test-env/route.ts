@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   let backendError = null;
 
   try {
-    const backendResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user-service/api/v1/`, {
+    const backendResponse = await fetch('http://localhost:8080/user-service/api/v1/', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -27,16 +27,16 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     environment: {
-      NODE_ENV: process.env.NODE_ENV,
-      NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET ? 'Set' : 'Not set',
-      NEXTAUTH_URL: process.env.NEXTAUTH_URL,
-      NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
-      JWT_SECRET: process.env.JWT_SECRET ? 'Set' : 'Not set',
+      NODE_ENV: 'development',
+      NEXTAUTH_SECRET: 'Hardcoded for development',
+      NEXTAUTH_URL: 'http://localhost:3000',
+      API_BASE_URL: 'http://localhost:8080',
+      JWT_SECRET: 'Hardcoded for development',
     },
     backend: {
       status: backendStatus,
       error: backendError,
-      url: `${process.env.NEXT_PUBLIC_API_BASE_URL}/user-service/api/v1/`,
+      url: 'http://localhost:8080/user-service/api/v1/',
     },
     timestamp: new Date().toISOString(),
   });

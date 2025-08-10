@@ -117,8 +117,8 @@ export function BackendStatus({ className }: BackendStatusProps) {
       )}
 
       <div className="mt-3 text-xs text-gray-500">
-        <p><strong>API Base URL:</strong> {process.env.NEXT_PUBLIC_API_BASE_URL}</p>
-        <p><strong>Target Endpoint:</strong> {process.env.NEXT_PUBLIC_API_BASE_URL}/user-service/api/v1/</p>
+        <p><strong>API Base URL:</strong> http://localhost:8080</p>
+        <p><strong>Target Endpoint:</strong> http://localhost:8080/user-service/api/v1/</p>
       </div>
     </div>
   );

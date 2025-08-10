@@ -4,9 +4,9 @@
 
 import { toast } from 'react-hot-toast'
 
-// API Configuration
+// API Configuration - Fully hardcoded, no environment variables
 const API_CONFIG = {
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080',
+  baseURL: 'http://localhost:8080',
   timeout: 30000,
   retries: 3,
   retryDelay: 1000,

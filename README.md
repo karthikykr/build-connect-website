@@ -97,26 +97,7 @@ src/
    pnpm install
    ```
 
-3. **Environment Setup**
-   Create a `.env.local` file in the root directory:
-
-   ```env
-   NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
-   NEXTAUTH_SECRET=your-secret-key
-   NEXTAUTH_URL=http://localhost:3000
-
-   # Google Maps API
-   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your-google-maps-api-key
-
-   # Stripe
-   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your-stripe-publishable-key
-   STRIPE_SECRET_KEY=your-stripe-secret-key
-
-   # Socket.IO
-   NEXT_PUBLIC_SOCKET_URL=http://localhost:8080
-   ```
-
-4. **Run the development server**
+3. **Run the development server**
 
    ```bash
    npm run dev
@@ -126,8 +107,10 @@ src/
    pnpm dev
    ```
 
-5. **Open your browser**
+4. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000)
+
+**Note:** No environment configuration is required! All settings are hardcoded for development.
 
 ## 🎨 Design System
 

@@ -139,13 +139,13 @@ export async function authenticateRequest(request: NextRequest): Promise<Authent
   }
   
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any
-    
+    const decoded = jwt.verify(token, 'build-connect-jwt-secret-for-development') as any
+
     // Verify token with backend if needed
-    const verificationResponse = await fetch(`${process.env.BACKEND_API_URL}/auth/verify`, {
+    const verificationResponse = await fetch('http://localhost:8080/auth/verify', {
       headers: {
         'Authorization': `Bearer ${token}`,
-        'X-API-Key': process.env.BACKEND_API_KEY || '',
+        'X-API-Key': '',
       },
     })
     
@@ -256,7 +256,7 @@ export function rateLimit(maxRequests: number = 100, windowMs: number = 15 * 60 
 // CORS middleware
 export function corsMiddleware(request: NextRequest) {
   const origin = request.headers.get('origin')
-  const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000']
+  const allowedOrigins = ['http://localhost:3000']
   
   if (origin && !allowedOrigins.includes(origin)) {
     throw new ApiError('CORS policy violation', 403, 'CORS_ERROR')
@@ -302,10 +302,8 @@ export function withErrorHandling(handler: (request: NextRequest) => Promise<Nex
       }
       
       // Log unexpected errors for monitoring
-      if (process.env.NODE_ENV === 'production') {
-        // Send to error monitoring service (e.g., Sentry)
-        console.error('Unexpected API error:', error)
-      }
+      // Always log errors in development
+      console.error('Unexpected API error:', error)
       
       return createErrorResponse('Internal server error', 500)
     }
@@ -333,17 +331,17 @@ export async function proxyToBackend(
 ) {
   const { method = 'GET', body, headers = {}, params } = options
   
-  const url = new URL(endpoint, process.env.BACKEND_API_URL)
-  
+  const url = new URL(endpoint, 'http://localhost:8080')
+
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
       url.searchParams.append(key, value)
     })
   }
-  
+
   const requestHeaders = {
     'Content-Type': 'application/json',
-    'X-API-Key': process.env.BACKEND_API_KEY || '',
+    'X-API-Key': '',
     ...headers,
   }
   
