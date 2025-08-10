@@ -2,7 +2,7 @@
 
 import { DashboardLayout } from '@/components/layout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { UserManagement } from '@/components/features/admin/UserManagement';
+import { UserManagementSimple as UserManagement } from '@/components/features/admin/UserManagementSimple';
 import { Button } from '@/components/ui/Button';
 import { Users, Download, UserPlus, Settings } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';

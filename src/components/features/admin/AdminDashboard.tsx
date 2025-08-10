@@ -335,52 +335,6 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
 
   return (
     <div className="space-y-6">
-      {/* System Health Banner */}
-      <Card
-        className={`border-2 ${stats.systemHealth === 'healthy' ? 'border-green-200 bg-green-50' : 'border-yellow-200 bg-yellow-50'}`}
-      >
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div
-                className={`flex h-8 w-8 items-center justify-center rounded-full ${stats.systemHealth === 'healthy' ? 'bg-green-100' : 'bg-yellow-100'}`}
-              >
-                {stats.systemHealth === 'healthy' ? (
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                ) : (
-                  <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                )}
-              </div>
-              <div>
-                <h3
-                  className={`font-medium ${stats.systemHealth === 'healthy' ? 'text-green-900' : 'text-yellow-900'}`}
-                >
-                  System Status:{' '}
-                  {stats.systemHealth === 'healthy'
-                    ? 'All Systems Operational'
-                    : 'Minor Issues Detected'}
-                </h3>
-                <p
-                  className={`text-sm ${stats.systemHealth === 'healthy' ? 'text-green-800' : 'text-yellow-800'}`}
-                >
-                  Platform is running smoothly with no critical issues
-                </p>
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-            >
-              <RefreshCw
-                className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`}
-              />
-              Refresh
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">

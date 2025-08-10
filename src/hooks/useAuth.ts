@@ -1,11 +1,22 @@
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { UserRole } from '@/types';
 import { getRedirectUrl } from '@/utils/auth-redirects';
+import { apiClient } from '@/lib/api-client';
 
 export function useAuth() {
   const { data: session, status } = useSession();
   const router = useRouter();
+
+  // Sync NextAuth session tokens with API client
+  useEffect(() => {
+    if (session?.user?.accessToken && session?.user?.sessionId) {
+      apiClient.setAuth(session.user.accessToken, session.user.sessionId);
+    } else if (status === 'unauthenticated') {
+      apiClient.clearAuth();
+    }
+  }, [session, status]);
 
   const user = session?.user;
   const isLoading = status === 'loading';
@@ -66,7 +77,7 @@ export function useAuth() {
 
     switch (user.role) {
       case 'admin':
-        return '/admin/dashboard';
+        return '/admin';
       case 'broker':
         return '/brokers/dashboard';
       case 'contractor':

@@ -2,6 +2,7 @@ import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { JWT } from 'next-auth/jwt';
 import { User, UserRole } from '@/types';
+import { mockLogin, mockGetUserProfile, shouldUseMockAuth } from './mock-auth';
 
 // Extend the built-in session types
 declare module 'next-auth' {

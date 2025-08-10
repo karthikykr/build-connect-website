@@ -271,7 +271,11 @@ class ApiClient {
 
         // Success response
         if (showSuccessToast && successMessage) {
-          toast.success(successMessage)
+          try {
+            toast.success(successMessage)
+          } catch (toastError) {
+            console.error('Toast error:', toastError)
+          }
         }
 
         return responseData
@@ -297,7 +301,11 @@ class ApiClient {
 
     // All retries failed
     if (lastError && showErrorToast) {
-      toast.error(lastError.message)
+      try {
+        toast.error(lastError.message)
+      } catch (toastError) {
+        console.error('Toast error:', toastError)
+      }
     }
 
     throw lastError || new Error('Request failed')

@@ -4,11 +4,11 @@ import { DashboardLayout } from '@/components/layout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { 
-  Shield, 
-  Users, 
-  TrendingUp, 
-  DollarSign, 
+import {
+  Shield,
+  Users,
+  TrendingUp,
+  DollarSign,
   Calendar,
   MessageSquare,
   FileText,
@@ -17,6 +17,7 @@ import {
   UserCheck
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import Link from 'next/link';
 
 export default function AdminDashboard() {
   const { data: session } = useSession();
@@ -41,23 +42,7 @@ export default function AdminDashboard() {
             </Button>
           </div>
 
-          {/* Role Verification Banner */}
-          <Card className="border-red-200 bg-red-50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                  <Shield className="w-4 h-4 text-red-600" />
-                </div>
-                <div>
-                  <h3 className="font-medium text-red-900">Admin Dashboard</h3>
-                  <p className="text-sm text-red-700">
-                    You are logged in as an <strong>Administrator</strong>. 
-                    Role-based redirect is working correctly!
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -121,22 +106,30 @@ export default function AdminDashboard() {
                 <CardTitle>Admin Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button variant="outline" className="w-full justify-start">
-                  <Users className="w-4 h-4 mr-2" />
-                  Manage Users
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <UserCheck className="w-4 h-4 mr-2" />
-                  Verify Brokers
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <BarChart3 className="w-4 h-4 mr-2" />
-                  View Analytics
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <Settings className="w-4 h-4 mr-2" />
-                  System Settings
-                </Button>
+                <Link href="/admin/users">
+                  <Button variant="outline" className="w-full justify-start">
+                    <Users className="w-4 h-4 mr-2" />
+                    Manage Users
+                  </Button>
+                </Link>
+                <Link href="/admin/verifications">
+                  <Button variant="outline" className="w-full justify-start">
+                    <UserCheck className="w-4 h-4 mr-2" />
+                    Verify Brokers
+                  </Button>
+                </Link>
+                <Link href="/admin/analytics">
+                  <Button variant="outline" className="w-full justify-start">
+                    <BarChart3 className="w-4 h-4 mr-2" />
+                    View Analytics
+                  </Button>
+                </Link>
+                <Link href="/admin/settings">
+                  <Button variant="outline" className="w-full justify-start">
+                    <Settings className="w-4 h-4 mr-2" />
+                    System Settings
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
 

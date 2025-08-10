@@ -24,9 +24,21 @@ import {
   UserX,
   Download,
   RefreshCw,
+  AlertTriangle,
 } from 'lucide-react';
-import { adminService, AdminUser, UserFilters } from '@/services/admin.service';
+import { adminService } from '@/services/admin.service';
+import { AdminUser } from '@/types';
 import { formatRelativeTime } from '@/lib/utils';
+
+// Define UserFilters interface locally to avoid import issues
+interface UserFilters {
+  search?: string;
+  role?: 'user' | 'broker' | 'contractor' | 'admin';
+  status?: 'active' | 'inactive' | 'suspended';
+  verificationStatus?: 'pending' | 'verified' | 'rejected';
+  page?: number;
+  limit?: number;
+}
 
 interface UserManagementProps {
   user: any;
@@ -35,12 +47,24 @@ interface UserManagementProps {
 export function UserManagement({ user }: UserManagementProps) {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+
+  // Error boundary for component-level errors
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      console.error('UserManagement component error:', event.error);
+      setError('An unexpected error occurred. Please refresh the page.');
+    };
+
+    window.addEventListener('error', handleError);
+    return () => window.removeEventListener('error', handleError);
+  }, []);
 
   useEffect(() => {
     loadUsers();
@@ -49,80 +73,55 @@ export function UserManagement({ user }: UserManagementProps) {
   const loadUsers = async () => {
     try {
       setIsLoading(true);
+      setError(null);
+
       const filters: UserFilters = {
         page: currentPage,
         limit: 20,
         search: searchTerm || undefined,
-        role: selectedRole !== 'all' ? selectedRole : undefined,
-        status: selectedStatus !== 'all' ? selectedStatus : undefined,
+        role: selectedRole !== 'all' ? (selectedRole as any) : undefined,
+        status: selectedStatus !== 'all' ? (selectedStatus as any) : undefined,
       };
 
       const response = await adminService.getUsers(filters);
-      if (response.success) {
-        setUsers(response.data.users);
-        setTotalPages(Math.ceil(response.data.total / 20));
+      if (response.success && response.data) {
+        setUsers(response.data.users || []);
+        setTotalPages(Math.ceil((response.data.total || 0) / 20));
+      } else {
+        throw new Error('Failed to load users');
       }
     } catch (error) {
       console.error('Error loading users:', error);
-      // Mock data for demonstration
-      const mockUsers: AdminUser[] = [
-        {
-          _id: '1',
-          name: 'Rajesh Kumar',
-          email: 'rajesh.kumar@email.com',
-          phone: '+91 9876543210',
-          role: 'site_owner',
-          status: 'active',
-          isVerified: true,
-          createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-          lastLoginAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          location: 'Bangalore, Karnataka',
-          profileCompletion: 85,
-        },
-        {
-          _id: '2',
-          name: 'Priya Sharma',
-          email: 'priya.sharma@email.com',
-          phone: '+91 9876543211',
-          role: 'contractor',
-          status: 'active',
-          isVerified: true,
-          createdAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
-          lastLoginAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
-          location: 'Mumbai, Maharashtra',
-          profileCompletion: 92,
-        },
-        {
-          _id: '3',
-          name: 'Amit Patel',
-          email: 'amit.patel@email.com',
-          phone: '+91 9876543212',
-          role: 'broker',
-          status: 'pending',
-          isVerified: false,
-          createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-          lastLoginAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-          location: 'Delhi, Delhi',
-          profileCompletion: 65,
-        },
-        {
-          _id: '4',
-          name: 'Sneha Reddy',
-          email: 'sneha.reddy@email.com',
-          phone: '+91 9876543213',
-          role: 'site_owner',
-          status: 'suspended',
-          isVerified: true,
-          createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
-          lastLoginAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-          location: 'Chennai, Tamil Nadu',
-          profileCompletion: 78,
-        },
-      ];
+      setError('Failed to load users from the server.');
+
+      // Simple mock data for demonstration
+      const mockUsers: AdminUser[] = [];
       setUsers(mockUsers);
-      setTotalPages(1);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Remove the broken mock data and continue with the rest of the component
+  const handleUserAction = async (userId: string, action: 'activate' | 'suspend' | 'delete' | 'verify') => {
+    try {
+      switch (action) {
+        case 'activate':
+          await adminService.updateUserStatus(userId, 'active');
+          break;
+        case 'suspend':
+          await adminService.updateUserStatus(userId, 'suspended');
+          break;
+        case 'delete':
+          await adminService.deleteUser(userId);
+          break;
+        case 'verify':
+          await adminService.verifyUser(userId);
+          break;
+      }
+      loadUsers();
+    } catch (error) {
+      console.error(`Error performing ${action} on user:`, error);
     }
   };
 
@@ -189,6 +188,36 @@ export function UserManagement({ user }: UserManagementProps) {
 
   if (isLoading) {
     return <Loading />;
+  }
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loading size="lg" text="Loading users..." />
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="p-6 text-center">
+            <div className="text-red-600 mb-4">
+              <AlertTriangle className="w-12 h-12 mx-auto mb-2" />
+              <h3 className="text-lg font-semibold">Error Loading Users</h3>
+              <p className="text-sm text-gray-600 mt-1">{error}</p>
+            </div>
+            <Button onClick={loadUsers} className="mt-4">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
