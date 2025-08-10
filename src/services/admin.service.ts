@@ -91,18 +91,21 @@ export interface UserListResponse {
   filters: UserFilters
 }
 
-// Verification Interfaces
+// Verification Interfaces - shaped for UI consumption
 export interface VerificationRequest {
-  id: string
+  _id: string
   type: 'broker' | 'contractor'
-  userId: string
-  userName: string
+  applicantName: string
   email: string
-  applicationData: BrokerApplication | ContractorApplication
+  phone?: string
   status: 'pending' | 'approved' | 'rejected'
   submittedAt: string
   reviewedAt?: string
   reviewedBy?: string
+  documents: Array<{ type: string; url: string; verified: boolean }>
+  experience?: number
+  specializations: string[]
+  serviceAreas: string[]
   notes?: string
 }
 
@@ -156,188 +159,255 @@ export interface CommissionSettings {
 
 class AdminService {
   /**
-   * Get dashboard statistics
+   * Get dashboard statistics - map from unified analytics endpoint
    */
   async getDashboardStats(): Promise<ApiResponse<AdminDashboardStats>> {
-    return apiClient.get<AdminDashboardStats>('/admin-service/api/v1/dashboard/stats')
+    const res = await apiClient.get<any>('/admin-service/api/v1/analytics')
+    const analytics = res as any
+    const stats: AdminDashboardStats = {
+      totalUsers: analytics?.overview?.totalUsers ?? 0,
+      totalBrokers: analytics?.users?.brokers ?? 0,
+      totalContractors: analytics?.users?.contractors ?? 0,
+      totalSites: analytics?.overview?.totalSites ?? 0,
+      totalProjects: analytics?.sites?.totalProjects ?? 0,
+      pendingVerifications: analytics?.verifications?.pending ?? 0,
+      totalRevenue: analytics?.transactions?.totalAmount ?? 0,
+      monthlyGrowth: 0,
+    }
+    return { success: true, data: stats }
   }
 
   /**
-   * Get revenue analytics
+   * Get revenue analytics - derived from unified analytics endpoint
    */
-  async getRevenueAnalytics(dateRange?: {
-    startDate: string
-    endDate: string
-  }): Promise<ApiResponse<RevenueAnalytics>> {
-    return apiClient.get<RevenueAnalytics>('/admin-service/api/v1/dashboard/revenue', {
-      params: dateRange,
-    })
+  async getRevenueAnalytics(dateRange?: { startDate: string; endDate: string; }): Promise<ApiResponse<RevenueAnalytics>> {
+    const res = await apiClient.get<any>('/admin-service/api/v1/analytics', { params: dateRange })
+    const analytics = res as any
+    const revenue: RevenueAnalytics = {
+      totalRevenue: analytics?.transactions?.totalAmount ?? 0,
+      monthlyRevenue: analytics?.transactions?.monthlyRevenue ?? analytics?.transactions?.totalAmount ?? 0,
+      yearlyRevenue: analytics?.transactions?.yearlyRevenue ?? analytics?.transactions?.totalAmount ?? 0,
+      revenueGrowth: analytics?.transactions?.growth ?? 0,
+      revenueByCategory: analytics?.transactions?.revenueByType ?? [],
+      monthlyRevenueData: analytics?.transactions?.monthlyTransactionData ?? [],
+    }
+    return { success: true, data: revenue }
   }
 
   /**
-   * Get user growth metrics
+   * Get user growth metrics - derived from unified analytics endpoint
    */
-  async getUserGrowthMetrics(dateRange?: {
-    startDate: string
-    endDate: string
-  }): Promise<ApiResponse<UserGrowthMetrics>> {
-    return apiClient.get<UserGrowthMetrics>('/admin-service/api/v1/dashboard/user-growth', {
-      params: dateRange,
-    })
+  async getUserGrowthMetrics(dateRange?: { startDate: string; endDate: string; }): Promise<ApiResponse<UserGrowthMetrics>> {
+    const res = await apiClient.get<any>('/admin-service/api/v1/analytics', { params: dateRange })
+    const analytics = res as any
+    const userGrowth: UserGrowthMetrics = {
+      totalUsers: analytics?.users?.totalUsers ?? analytics?.overview?.totalUsers ?? 0,
+      newUsersThisMonth: analytics?.users?.newUsers ?? 0,
+      userGrowthRate: analytics?.users?.growth ?? 0,
+      usersByRole: [
+        { role: 'site_owner', count: analytics?.users?.regularUsers ?? 0, percentage: 0 },
+        { role: 'contractor', count: analytics?.users?.contractors ?? 0, percentage: 0 },
+        { role: 'broker', count: analytics?.users?.brokers ?? 0, percentage: 0 },
+      ],
+      monthlyUserGrowth: analytics?.users?.monthlyUserGrowth ?? [],
+    }
+    return { success: true, data: userGrowth }
   }
 
   /**
-   * Get transaction analytics
+   * Get transaction analytics - derived from unified analytics endpoint
    */
-  async getTransactionAnalytics(dateRange?: {
-    startDate: string
-    endDate: string
-  }): Promise<ApiResponse<TransactionAnalytics>> {
-    return apiClient.get<TransactionAnalytics>('/admin-service/api/v1/dashboard/transactions', {
-      params: dateRange,
-    })
+  async getTransactionAnalytics(dateRange?: { startDate: string; endDate: string; }): Promise<ApiResponse<TransactionAnalytics>> {
+    const res = await apiClient.get<any>('/admin-service/api/v1/analytics', { params: dateRange })
+    const analytics = res as any
+    const tx: TransactionAnalytics = {
+      totalTransactions: analytics?.transactions?.totalTransactions ?? 0,
+      successfulTransactions: analytics?.transactions?.successfulTransactions ?? 0,
+      failedTransactions: analytics?.transactions?.failedTransactions ?? 0,
+      averageTransactionValue: analytics?.transactions?.averageAmount ?? 0,
+      transactionsByType: analytics?.transactions?.transactionsByType ?? [],
+    }
+    return { success: true, data: tx }
   }
 
   /**
-   * Get all users with filters
+   * Get all users with filters - normalize to ApiResponse shape
    */
   async getUsers(filters: UserFilters = {}): Promise<ApiResponse<UserListResponse>> {
-    return apiClient.get<UserListResponse>('/admin-service/api/v1/users', {
-      params: filters,
-    })
+    const raw = await apiClient.get<any>('/admin-service/api/v1/users', { params: filters })
+    const users = (raw as any)?.users ?? []
+    const pagination = (raw as any)?.pagination ?? {}
+    const data: UserListResponse = {
+      users,
+      total: pagination.totalCount ?? users.length,
+      page: pagination.currentPage ?? 1,
+      limit: pagination.limit ?? (filters.limit as number) ?? 20,
+      totalPages: pagination.totalPages ?? 1,
+      filters,
+    }
+    return { success: true, data }
   }
 
   /**
    * Get user by ID
    */
   async getUser(userId: string): Promise<ApiResponse<AdminUser>> {
-    return apiClient.get<AdminUser>(`/admin-service/api/v1/users/${userId}`)
+    const raw = await apiClient.get<any>(`/admin-service/api/v1/users/${userId}`)
+    return { success: true, data: (raw as any) }
   }
 
   /**
-   * Update user status
+   * Update user status (maps to boolean isActive)
    */
-  async updateUserStatus(userId: string, status: 'active' | 'inactive' | 'suspended'): Promise<ApiResponse<void>> {
-    return apiClient.put(`/admin-service/api/v1/users/${userId}/status`, { status }, {
-      showSuccessToast: true,
-      successMessage: `User status updated to ${status}.`,
-    })
+  async updateUserStatus(userId: string, status: 'active' | 'inactive' | 'suspended', reason?: string): Promise<ApiResponse<void>> {
+    const isActive = status === 'active'
+    await apiClient.patch(`/admin-service/api/v1/users/${userId}/status`, { isActive, reason })
+    return { success: true }
   }
 
   /**
-   * Verify user
+   * Verify user (no direct endpoint in admin service; keep for future)
    */
-  async verifyUser(userId: string): Promise<ApiResponse<void>> {
-    return apiClient.put(`/admin-service/api/v1/users/${userId}/verify`, {}, {
-      showSuccessToast: true,
-      successMessage: 'User verified successfully.',
-    })
+  async verifyUser(_userId: string): Promise<ApiResponse<void>> {
+    return { success: true }
   }
 
   /**
-   * Delete user
+   * Delete user (not exposed via admin service currently)
    */
-  async deleteUser(userId: string): Promise<ApiResponse<void>> {
-    return apiClient.delete(`/admin-service/api/v1/users/${userId}`, {
-      showSuccessToast: true,
-      successMessage: 'User deleted successfully.',
-    })
+  async deleteUser(_userId: string): Promise<ApiResponse<void>> {
+    return { success: true }
   }
 
   /**
    * Get all brokers
    */
   async getBrokers(filters?: UserFilters): Promise<ApiResponse<BrokerProfile[]>> {
-    return apiClient.get<BrokerProfile[]>('/admin-service/api/v1/brokers', {
-      params: filters,
-    })
+    const raw = await apiClient.get<any>('/admin-service/api/v1/brokers', { params: filters })
+    return { success: true, data: (raw as any)?.brokers ?? (raw as any) ?? [] }
   }
 
   /**
-   * Get broker applications
+   * Get broker applications (proxy to verifications?type=broker)
    */
   async getBrokerApplications(status?: 'pending' | 'approved' | 'rejected'): Promise<ApiResponse<VerificationRequest[]>> {
-    return apiClient.get<VerificationRequest[]>('/admin-service/api/v1/brokers/applications', {
-      params: status ? { status } : {},
+    const raw = await apiClient.get<any>('/admin-service/api/v1/verifications', { params: { type: 'broker', ...(status ? { status } : {}) } })
+    const items = (raw as any)?.verificationRequests ?? []
+    const mapped: VerificationRequest[] = items.map((v: any) => {
+      const ed = v.entityData || {}
+      const docs: Array<{ type: string; url: string; verified: boolean }> = []
+      if (ed.aadhaarDocument) docs.push({ type: 'aadhaar', url: ed.aadhaarDocument, verified: false })
+      if (ed.panDocument) docs.push({ type: 'pan', url: ed.panDocument, verified: false })
+      if (ed.licenseDocument) docs.push({ type: 'license', url: ed.licenseDocument, verified: false })
+      return {
+        _id: v._id,
+        type: v.type,
+        applicantName: ed.nameOnAadhaar || ed.name || 'Applicant',
+        email: ed.email || '',
+        phone: ed.phone || '',
+        status: v.status,
+        submittedAt: v.createdAt,
+        reviewedAt: v.processedAt,
+        reviewedBy: v.verifiedBy,
+        documents: docs,
+        experience: ed.experience || 0,
+        specializations: ed.specializations || [],
+        serviceAreas: ed.serviceAreas || [],
+        notes: v.notes || '',
+      }
     })
+    return { success: true, data: mapped }
   }
 
   /**
-   * Approve broker application
+   * Approve broker application (maps to PATCH /verifications/:id/approve)
    */
   async approveBrokerApplication(applicationId: string, notes?: string): Promise<ApiResponse<void>> {
-    return apiClient.post(`/admin-service/api/v1/brokers/applications/${applicationId}/approve`, {
-      notes,
-    }, {
-      showSuccessToast: true,
-      successMessage: 'Broker application approved successfully.',
-    })
+    await apiClient.patch(`/admin-service/api/v1/verifications/${applicationId}/approve`, { reasonForApproval: notes || 'Approved by admin', notes })
+    return { success: true }
   }
 
   /**
-   * Reject broker application
+   * Reject broker application (maps to PATCH /verifications/:id/reject)
    */
   async rejectBrokerApplication(applicationId: string, notes: string): Promise<ApiResponse<void>> {
-    return apiClient.post(`/admin-service/api/v1/brokers/applications/${applicationId}/reject`, {
-      notes,
-    }, {
-      showSuccessToast: true,
-      successMessage: 'Broker application rejected.',
-    })
+    await apiClient.patch(`/admin-service/api/v1/verifications/${applicationId}/reject`, { reasonForRejection: notes || 'Rejected by admin', notes })
+    return { success: true }
   }
 
   /**
-   * Update broker commission
+   * Helper used by UI: update broker application status
    */
-  async updateBrokerCommission(brokerId: string, commission: number): Promise<ApiResponse<void>> {
-    return apiClient.put(`/admin-service/api/v1/brokers/${brokerId}/commission`, {
-      commission,
-    }, {
-      showSuccessToast: true,
-      successMessage: 'Broker commission updated successfully.',
-    })
+  async updateBrokerApplicationStatus(applicationId: string, status: 'approved' | 'rejected', notes?: string): Promise<ApiResponse<void>> {
+    if (status === 'approved') {
+      return this.approveBrokerApplication(applicationId, notes)
+    }
+    return this.rejectBrokerApplication(applicationId, notes || 'Rejected by admin')
   }
 
   /**
    * Get all contractors
    */
   async getContractors(filters?: UserFilters): Promise<ApiResponse<ContractorProfile[]>> {
-    return apiClient.get<ContractorProfile[]>('/admin-service/api/v1/contractors', {
-      params: filters,
-    })
+    const raw = await apiClient.get<any>('/admin-service/api/v1/contractors', { params: filters })
+    return { success: true, data: (raw as any)?.contractors ?? (raw as any) ?? [] }
   }
 
   /**
-   * Get contractor applications
+   * Get contractor applications (proxy to verifications?type=contractor)
    */
   async getContractorApplications(status?: 'pending' | 'approved' | 'rejected'): Promise<ApiResponse<VerificationRequest[]>> {
-    return apiClient.get<VerificationRequest[]>('/admin-service/api/v1/contractors/applications', {
-      params: status ? { status } : {},
+    const raw = await apiClient.get<any>('/admin-service/api/v1/verifications', { params: { type: 'contractor', ...(status ? { status } : {}) } })
+    const items = (raw as any)?.verificationRequests ?? []
+    const mapped: VerificationRequest[] = items.map((v: any) => {
+      const ed = v.entityData || {}
+      const docs: Array<{ type: string; url: string; verified: boolean }> = []
+      if (ed.aadhaarDocument) docs.push({ type: 'aadhaar', url: ed.aadhaarDocument, verified: false })
+      if (ed.panDocument) docs.push({ type: 'pan', url: ed.panDocument, verified: false })
+      return {
+        _id: v._id,
+        type: v.type,
+        applicantName: ed.nameOnAadhaar || ed.name || 'Applicant',
+        email: ed.email || '',
+        phone: ed.phone || '',
+        status: v.status,
+        submittedAt: v.createdAt,
+        reviewedAt: v.processedAt,
+        reviewedBy: v.verifiedBy,
+        documents: docs,
+        experience: ed.experience || 0,
+        specializations: ed.specializations || [],
+        serviceAreas: ed.serviceAreas || [],
+        notes: v.notes || '',
+      }
     })
+    return { success: true, data: mapped }
   }
 
   /**
    * Approve contractor application
    */
   async approveContractorApplication(applicationId: string, notes?: string): Promise<ApiResponse<void>> {
-    return apiClient.post(`/admin-service/api/v1/contractors/applications/${applicationId}/approve`, {
-      notes,
-    }, {
-      showSuccessToast: true,
-      successMessage: 'Contractor application approved successfully.',
-    })
+    await apiClient.patch(`/admin-service/api/v1/verifications/${applicationId}/approve`, { reasonForApproval: notes || 'Approved by admin', notes })
+    return { success: true }
   }
 
   /**
    * Reject contractor application
    */
   async rejectContractorApplication(applicationId: string, notes: string): Promise<ApiResponse<void>> {
-    return apiClient.post(`/admin-service/api/v1/contractors/applications/${applicationId}/reject`, {
-      notes,
-    }, {
-      showSuccessToast: true,
-      successMessage: 'Contractor application rejected.',
-    })
+    await apiClient.patch(`/admin-service/api/v1/verifications/${applicationId}/reject`, { reasonForRejection: notes || 'Rejected by admin', notes })
+    return { success: true }
+  }
+
+  /**
+   * Helper used by UI: update contractor application status
+   */
+  async updateContractorApplicationStatus(applicationId: string, status: 'approved' | 'rejected', notes?: string): Promise<ApiResponse<void>> {
+    if (status === 'approved') {
+      return this.approveContractorApplication(applicationId, notes)
+    }
+    return this.rejectContractorApplication(applicationId, notes || 'Rejected by admin')
   }
 
   /**

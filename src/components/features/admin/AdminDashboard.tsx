@@ -182,7 +182,7 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
     {
       title: 'Total Users',
       value: stats.totalUsers.toLocaleString(),
-      subtitle: `${stats.activeUsers.toLocaleString()} active`,
+      subtitle: `${userGrowth.newUsersThisMonth?.toLocaleString?.() || userGrowth.newUsersThisMonth} new this month`,
       icon: Users,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
@@ -191,7 +191,7 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
     {
       title: 'Total Revenue',
       value: formatCurrency(stats.totalRevenue),
-      subtitle: `${formatCurrency(stats.monthlyRevenue)} this month`,
+      subtitle: `${formatCurrency(revenue.monthlyRevenue)} this month`,
       icon: DollarSign,
       color: 'text-green-600',
       bgColor: 'bg-green-50',
@@ -207,9 +207,9 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
       trend: -8.2,
     },
     {
-      title: 'Active Projects',
-      value: stats.activeProjects.toLocaleString(),
-      subtitle: `${stats.totalProjects.toLocaleString()} total`,
+      title: 'Total Projects',
+      value: (stats.totalProjects ?? 0).toLocaleString(),
+      subtitle: `${stats.totalSites?.toLocaleString?.() || stats.totalSites || 0} sites`,
       icon: Briefcase,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
