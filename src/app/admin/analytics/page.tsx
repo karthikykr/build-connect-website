@@ -299,163 +299,19 @@ export default function AdminAnalytics() {
                       <span className="font-semibold text-success">{formatCurrency(analyticsData.revenueStats.avgDealValue)}</span>
                     </div>
 
-          {/* User Analytics */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5" />
-                  User Distribution by Role
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {userMetrics.usersByRole.map((role, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-3 h-3 rounded-full ${
-                          index === 0 ? 'bg-blue-500' :
-                          index === 1 ? 'bg-orange-500' : 'bg-green-500'
-                        }`}></div>
-                        <span className="text-sm font-medium text-gray-900">
-                          {role.role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                        </span>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium text-gray-900">{role.count.toLocaleString()}</p>
-                        <p className="text-xs text-gray-500">{role.percentage}%</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="w-5 h-5" />
-                  Revenue by Category
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {revenueMetrics.revenueByCategory.map((category, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-900">{category.category}</span>
-                        <span className="text-sm text-gray-600">{category.percentage}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className={`h-2 rounded-full ${
-                            index === 0 ? 'bg-green-500' :
-                            index === 1 ? 'bg-blue-500' : 'bg-orange-500'
-                          }`}
-                          style={{ width: `${category.percentage}%` }}
-                        ></div>
-                      </div>
-                      <p className="text-xs text-gray-500">{formatCurrency(category.amount)}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                  {/* Mock Chart */}
+                  <div className="mt-6 h-32 bg-gradient-to-r from-warning/20 to-success/20 rounded-lg flex items-end justify-center">
+                    <div className="text-sm text-text-secondary">Revenue Chart</div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
-
-          {/* Property Analytics */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Home className="w-5 h-5" />
-                  Properties by Type
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {propertyMetrics.propertiesByType.map((type, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-3 h-3 rounded-full ${
-                          index === 0 ? 'bg-purple-500' :
-                          index === 1 ? 'bg-indigo-500' :
-                          index === 2 ? 'bg-pink-500' : 'bg-yellow-500'
-                        }`}></div>
-                        <span className="text-sm font-medium text-gray-900">{type.type}</span>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium text-gray-900">{type.count.toLocaleString()}</p>
-                        <p className="text-xs text-gray-500">{type.percentage}%</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="w-5 h-5" />
-                  Transaction Types
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {transactionMetrics.transactionsByType.map((type, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-900">{type.type}</span>
-                        <span className="text-sm text-gray-600">{type.percentage}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className={`h-2 rounded-full ${
-                            index === 0 ? 'bg-emerald-500' :
-                            index === 1 ? 'bg-cyan-500' : 'bg-violet-500'
-                          }`}
-                          style={{ width: `${type.percentage}%` }}
-                        ></div>
-                      </div>
-                      <p className="text-xs text-gray-500">{type.count.toLocaleString()} transactions</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-text-secondary">No analytics data available</p>
           </div>
-
-          {/* Key Metrics Summary */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5" />
-                Key Performance Indicators
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-gray-900">{userMetrics.retentionRate}%</p>
-                  <p className="text-sm text-gray-600">User Retention Rate</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(revenueMetrics.averageTransactionValue)}</p>
-                  <p className="text-sm text-gray-600">Avg Transaction Value</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(propertyMetrics.averageListingValue)}</p>
-                  <p className="text-sm text-gray-600">Avg Property Value</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-gray-900">{((transactionMetrics.successfulTransactions / transactionMetrics.totalTransactions) * 100).toFixed(1)}%</p>
-                  <p className="text-sm text-gray-600">Transaction Success Rate</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        )}
       </DashboardLayout>
     </ProtectedRoute>
   );

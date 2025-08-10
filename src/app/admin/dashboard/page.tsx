@@ -172,17 +172,7 @@ export default function AdminDashboard() {
             </Card>
           </div>
 
-          {/* Session Debug Info */}
-          <Card className="border-gray-200 bg-gray-50">
-            <CardHeader>
-              <CardTitle className="text-sm">Debug: Session Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <pre className="text-xs text-gray-600 overflow-auto">
-                {JSON.stringify(session, null, 2)}
-              </pre>
-            </CardContent>
-          </Card>
+
         </div>
       </DashboardLayout>
     </ProtectedRoute>
